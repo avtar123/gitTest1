@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <video autoplay controls></video>
+    <button>record</button>
+    <!-- autoplay is doing play & controls only controls like play ,pause etc  -->
+
+    <script>
+        let video=document.querySelector("video");
+        let audio=document.querySelector("audio");
+        let constraints={video: true,audio: true};
+        let mediaRecoder;
+        let isRecording=false;
+        let chunks=[];
+        let btn=document.querySelector("button");
+        
+        btn.addEventListener("click",function(){
+        
+            if(isRecording){
+                mediaRecoder.stop();
+                isRecording=false;
+                btn.innerText="Record";
+            }else
+            {
+                 mediaRecoder.start();
+                 isRecording=true;
+                 btn.innerText="Recording....";
+             }
+        });
+    
+
+        navigator.mediaDevices
+        //Navigator. mediaDevices read-only property returns a MediaDevices object,
+        // which provides access to connected media input devices like cameras 
+        //and microphones, as well as screen sharing.
+        .getUserMedia(constraints)
+        //getUserMedia() , passing in the constraints objects for the video 
+        //and audio tracks. This returns a MediaStream with the audio and video 
+        //from a source matching the inputs (typically a webcam, although if you 
+        //provide the right constraints you can get media from other sources)
+        //it's a promise base function
+        // constraints is an object which tells us that which type of data we can use
+        .then(function(mediaStream){
+            video.srcObject=mediaStream;
+            // media steram is an object in which input is coming from camera 
+            //it stream it
+            let options = { mimeType: "video/webm; codecs=vp9" };
+
+            mediaRecoder= new MediaRecorder(mediaStream,options);
+            //media recorder is an object which is recording media stream
+            mediaRecoder.addEventListener("dataavilable",
+            function(e){
+                chunks.push(e.data);
+            });
+            mediaRecoder.addEventListener("stop",function(){
+                let blob= new Blob(chunks, {type:"video/mp4"});
+                //Blob is huge collection of small small chunks(array)
+                chunks=[];
+                let url = URL.createObjectURL(blob);
+                let a= document.createElement("a");
+                a.href=url;
+                a.download="video.mp4";
+                a.click();
+                a.remove();
+            })
+        });
+    </script>
+ </body>
+</html>
